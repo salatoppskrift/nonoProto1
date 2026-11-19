@@ -1,0 +1,3 @@
+- [x] Passe på at jeg kan hente en rad
+- [ ] Lage unike ID-er til hver nonosquare istedenfor 'string'
+- [ ] Kunne hente en kolonne
