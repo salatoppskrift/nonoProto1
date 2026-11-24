@@ -1,15 +1,16 @@
-type NonoSetup = {
-    _fasit: Nonogram,
-    _user: Nonogram,
-    row: (i: number) => (board: Nonogram) => rowOrColumn,
-    kolonne: (i: number) => (board: Nonogram) => rowOrColumn,
-    time: number
-}
+type NonogramProto = boolean[][];
+
+type Five = 5;
 
 type NonoSquare = {
     id: string,
-    filled: boolean
+    filled: boolean,
+    location: NonoCoordinate
 };
+type NonoCoordinate = {
+    x: number,
+    y: number
+}
 type rowOrColumn = (NonoSquare | null)[];
 type Nonogram = (NonoSquare | null)[][];
 
@@ -27,7 +28,7 @@ class NonogramBoard {
     kolonne: (i: number) => (board: Nonogram) => rowOrColumn;
     time: number;
     private _size: { width: number, height: number };
-    private _konstant: number;
+    private _konstant: Five;
     private _assymetric: boolean;
 
     constructor(size: number = 1, assymetricSize?: number) {
@@ -61,30 +62,46 @@ class NonogramBoard {
     get User() {
         return this._user;
     }
+    get FasitAsOnesAndZeros(): number[][] {
+        return this._getAsNumbers(this._fasit);
+        // heller ha suksessmelding/errormelding istedenfor å motta et direkte number[][]!
+    }
+    get UserAsOnesAndZeros(): number[][] {
+        return this._getAsNumbers(this._user);
+    }
 
     set nyFasit(nonogram: Nonogram) {
         this._fasit = nonogram;
     }
 
-    static get defaultFiveByFiveNonogram(): Nonogram {
-        return [
+    static get defaultFiveByFiveNonogramProtype(): Nonogram {
+        return this.createNewNonogram([
             [false, false, false, true, false],
             [false, true, true, true, true],
             [false, true, true, true, false],
             [true, true, true, false, false],
             [true, true, false, false, false]
-        ].map(row => row.map(boo => ({
+        ]);
+    }
+
+    static createNewNonogram(boolArr: NonogramProto): Nonogram {
+        return boolArr.map((row, rI) => row.map((boo, bI) => ({
             id: 'string',
-            filled: boo
+            filled: boo,
+            location: { x: rI, y: bI }
         }) satisfies NonoSquare));
+    }
+
+    private _getAsNumbers(arr: Nonogram): number[][] {
+        return arr.map(row => row.map(boo => Number(Boolean(boo?.filled))));
     }
 }
 
 const nono = new NonogramBoard();
-nono.nyFasit = NonogramBoard.defaultFiveByFiveNonogram;
+nono.nyFasit = NonogramBoard.defaultFiveByFiveNonogramProtype;
 
-console.log(nono.Fasit.map(row => row.map(boo => Number(Boolean(boo?.filled)))));
-console.log(nono.row(2)(nono.Fasit).map(boo => Number(boo === null ? boo : boo.filled)));
+console.log(nono.FasitAsOnesAndZeros);
+console.log(nono.UserAsOnesAndZeros);
 console.log("Ønsker meg...", [
     [0, 0, 0, 1, 1],
     [0, 1, 1, 1, 1],
@@ -93,20 +110,3 @@ console.log("Ønsker meg...", [
     [0, 1, 0, 0, 0]
 ])
 //console.log(nono.User.map(row => row.map(boo => Number(boo === null ? boo : boo.filled))));
-/* --- konsollen!
-[
-  [ 0, 0, 0, 1, 0 ],
-  [ 0, 1, 1, 1, 1 ],
-  [ 0, 1, 1, 1, 0 ],
-  [ 1, 1, 1, 0, 0 ],
-  [ 1, 1, 0, 0, 0 ]
-]
-[ 0, 1, 1, 1, 0 ] //nono.row(2).nonoFasit jepp! index 2 === 3dje rad
-Ønsker meg... [
-  [ 0, 0, 0, 1, 1 ],
-  [ 0, 1, 1, 1, 1 ],
-  [ 0, 1, 1, 1, 0 ],
-  [ 1, 1, 1, 0, 0 ],
-  [ 0, 1, 0, 0, 0 ]
-]
-*/
