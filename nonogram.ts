@@ -1,3 +1,10 @@
+export class App {
+    nonogram: NonogramBoard;
+    constructor() {
+        this.nonogram = new NonogramBoard();
+    }
+}
+
 type NonogramProto = boolean[][];
 
 type Five = 5;
@@ -14,10 +21,16 @@ type NonoCoordinate = {
 type rowOrColumn = (NonoSquare | null)[];
 type Nonogram = (NonoSquare | null)[][];
 
-export class App {
-    nonogram: NonogramBoard;
-    constructor() {
-        this.nonogram = new NonogramBoard();
+class NonogramClass {
+    private _main: Nonogram;
+    private _konstant: Five;
+    constructor(size: number = 1, assymetricSize?: number) {
+        this._konstant = 5;
+        this._main = assymetricSize === null ? this._createArrayWithNulls(size) : this._createArrayWithNulls(size, assymetricSize);
+    }
+    get Main() { return this._main };
+    private _createArrayWithNulls(size: number = 1, assymetricSize?: number):Nonogram {
+        return Array.from({ length: (assymetricSize ?? size) * this._konstant }, () => Array.from({ length: size * this._konstant }, () => null));
     }
 }
 
@@ -35,17 +48,13 @@ class NonogramBoard {
         this._size = { width: size, height: assymetricSize ?? size };
         this._assymetric = assymetricSize ? assymetricSize > size : false;
         this._konstant = 5;
-        this._fasit = Array.from({ length: (assymetricSize ?? size) * this._konstant }, () =>
-            Array.from({ length: size }, () => null)
-        ),
-            this._user = Array.from({ length: (assymetricSize ?? size) * this._konstant }, () =>
-                Array.from({ length: size * this._konstant }, () => null)
-            ),
-            this.time = 0,
-            this.row = i => board => board[i],
-            this.kolonne = i => board => {
-                return board[i];
-            }
+        this._fasit = assymetricSize === null ? this._createArrayWithNulls(size) : this._createArrayWithNulls(size, assymetricSize);
+        this._user = assymetricSize === null ? this._createArrayWithNulls(size) : this._createArrayWithNulls(size, assymetricSize);
+        this.time = 0;
+        this.row = i => board => board[i];
+        this.kolonne = i => board => {
+            return board[i];
+        }
     }
 
     get kind() {
@@ -68,6 +77,16 @@ class NonogramBoard {
     }
     get UserAsOnesAndZeros(): number[][] {
         return this._getAsNumbers(this._user);
+    }
+    get FasitAsKolonner(): Nonogram {
+        return Array.from({ length: this._fasit.length }, (_: NonoSquare[], rowI) =>
+            Array.from({ length: this._fasit[0].length }, (_, itemI) =>
+                this._fasit[itemI][rowI]
+            )
+        )
+    }
+    private _createArrayWithNulls(size: number = 1, assymetricSize?: number):Nonogram {
+        return Array.from({ length: (assymetricSize ?? size) * this._konstant }, () => Array.from({ length: size * this._konstant }, () => null));
     }
 
     set nyFasit(nonogram: Nonogram) {
@@ -100,13 +119,13 @@ class NonogramBoard {
 const nono = new NonogramBoard();
 nono.nyFasit = NonogramBoard.defaultFiveByFiveNonogramProtype;
 
-console.log(nono.FasitAsOnesAndZeros);
-console.log(nono.UserAsOnesAndZeros);
+console.log(["abcdefghijk"], nono.FasitAsOnesAndZeros);
+console.log("\n", nono.UserAsOnesAndZeros);
 console.log("Ønsker meg...", [
     [0, 0, 0, 1, 1],
     [0, 1, 1, 1, 1],
     [0, 1, 1, 1, 0],
     [1, 1, 1, 0, 0],
     [0, 1, 0, 0, 0]
-])
-//console.log(nono.User.map(row => row.map(boo => Number(boo === null ? boo : boo.filled))));
+], "^ det jeg ønsker meg\n");
+console.log("nono.FasitAsKolonner (uferdig)", nono.FasitAsKolonner.map(row => row.map(fItem => Number(Boolean(fItem?.filled)))));
